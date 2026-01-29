@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anime Tap</title>
+<title>Anime Tap TG</title>
+
+<!-- TELEGRAM API -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
 * {
@@ -14,128 +17,48 @@
 
 body {
   margin: 0;
+  background: #0b0d18;
   font-family: Arial, sans-serif;
-  height: 100vh;
-  background: url("bg.jpg") center / cover no-repeat fixed;
   color: #fff;
-}
-
-/* затемнение */
-#shade {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-}
-
-/* приложение */
-#app {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* верх */
-#top {
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  backdrop-filter: blur(10px);
-  background: rgba(255,255,255,0.08);
-}
-
-#title {
-  font-size: 22px;
-  font-weight: bold;
+  text-align: center;
 }
 
 #score {
-  font-size: 26px;
-  color: #ffd86b;
-  text-shadow: 0 0 10px rgba(255,216,107,0.6);
-}
-
-/* центр */
-#center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 40px;
+  margin: 20px 0;
+  color: gold;
 }
 
 #girl {
-  width: 300px;
-  max-width: 85%;
-  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.7));
-  animation: float 4s ease-in-out infinite;
-  transition: transform 0.1s;
+  width: 260px;
+  max-width: 80%;
+  transition: transform 0.08s;
 }
 
 #girl:active {
-  transform: scale(0.9);
-}
-
-/* нижнее меню */
-#menu {
-  padding: 14px 0;
-  display: flex;
-  justify-content: space-around;
-  backdrop-filter: blur(12px);
-  background: rgba(255,255,255,0.1);
-  border-top: 1px solid rgba(255,255,255,0.2);
-}
-
-.menu-btn {
-  background: linear-gradient(135deg, #ff5fc8, #7f7bff);
-  border: none;
-  color: white;
-  padding: 12px 18px;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: bold;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-}
-
-/* анимации */
-@keyframes float {
-  0%   { transform: translateY(0); }
-  50%  { transform: translateY(-14px); }
-  100% { transform: translateY(0); }
+  transform: scale(0.92);
 }
 </style>
 </head>
 
 <body>
 
-<div id="shade"></div>
-
-<div id="app">
-
-  <div id="top">
-    <div id="title">🌸 Anime Tap</div>
-    <div id="score">0</div>
-  </div>
-
-  <div id="center">
-    <img src="girl.png" id="girl">
-  </div>
-
-  <div id="menu">
-    <button class="menu-btn">🛒 Магазин</button>
-    <button class="menu-btn">👤 Профиль</button>
-    <button class="menu-btn">🏆 Топ</button>
-  </div>
-
-</div>
+<div id="score">0</div>
+<img id="girl" src="girl.png">
 
 <script>
+/* TELEGRAM INIT */
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+/* SAFE STORAGE */
 let score = parseInt(localStorage.getItem("score")) || 0;
 const scoreEl = document.getElementById("score");
 scoreEl.innerText = score;
 
-document.getElementById("girl").onclick = function () {
+/* TAP */
+document.getElementById("girl").onclick = () => {
   score++;
   scoreEl.innerText = score;
   localStorage.setItem("score", score);
