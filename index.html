@@ -3,211 +3,120 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anime Tap Game</title>
+<title>Anime Tap</title>
 
 <style>
-* {
-  box-sizing: border-box;
-  user-select: none;
-}
-
 body {
   margin: 0;
+  background: #000;
   font-family: Arial, sans-serif;
-  background: url("bg.jpg") center / cover no-repeat fixed;
-  height: 100vh;
-  color: #fff;
+  color: white;
 }
 
 #app {
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(6px);
-  height: 100vh;
+  min-height: 100vh;
+  background: rgba(0,0,0,0.7);
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* TOP */
 #top {
   width: 100%;
   padding: 15px;
+  font-size: 22px;
   display: flex;
   justify-content: space-between;
-  font-size: 20px;
-  font-weight: bold;
 }
 
-/* SCORE */
 #score {
-  font-size: 26px;
   color: gold;
 }
 
-/* TAP ZONE */
-#tap-zone {
+#tap {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-#girl {
+#tap img {
   width: 260px;
   max-width: 80%;
-  transition: transform 0.1s;
 }
 
-/* MENU */
 #menu {
   width: 100%;
   display: flex;
   justify-content: space-around;
-  padding: 12px;
-  background: rgba(0,0,0,0.7);
-}
-
-.btn {
-  background: linear-gradient(135deg, #ff4ecd, #7f7bff);
-  border: none;
-  padding: 10px 14px;
-  border-radius: 12px;
-  color: #fff;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-/* PANELS */
-.panel {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.85);
-  display: none;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.panel h2 {
-  margin-top: 0;
-  text-align: center;
-}
-
-.close {
-  background: crimson;
-  border: none;
   padding: 10px;
+  background: #111;
+}
+
+button {
+  padding: 10px 14px;
   border-radius: 10px;
-  color: #fff;
-  margin-top: auto;
+  border: none;
+  background: #ff4edc;
+  color: white;
+  font-weight: bold;
 }
 </style>
 </head>
 
 <body>
-<div id="app">
 
+<div id="app">
   <div id="top">
-    <div>⭐ Anime Tap</div>
+    <div>Anime Tap</div>
     <div id="score">0</div>
   </div>
 
-  <div id="tap-zone">
+  <div id="tap">
     <img src="girl.png" id="girl">
   </div>
 
   <div id="menu">
-    <button class="btn" onclick="openPanel('shop')">🛒 Магазин</button>
-    <button class="btn" onclick="openPanel('profile')">👤 Профиль</button>
-    <button class="btn" onclick="openPanel('leaderboard')">🏆 Топ</button>
+    <button onclick="alert('Магазин позже')">Магазин</button>
+    <button onclick="alert('Профиль позже')">Профиль</button>
+    <button onclick="alert('Топ позже')">Топ</button>
   </div>
-</div>
-
-<!-- SHOP -->
-<div class="panel" id="shop">
-  <h2>🛒 Магазин</h2>
-  <p>🔹 x2 доход (10 минут) – 500 очков</p>
-  <p>🔹 x5 доход (10 минут) – 3000 очков</p>
-  <button class="close" onclick="closePanels()">Закрыть</button>
-</div>
-
-<!-- PROFILE -->
-<div class="panel" id="profile">
-  <h2>👤 Профиль</h2>
-  <p>ID: <span id="uid"></span></p>
-  <p>Очки: <span id="pScore"></span></p>
-  <button class="close" onclick="closePanels()">Закрыть</button>
-</div>
-
-<!-- LEADERBOARD -->
-<div class="panel" id="leaderboard">
-  <h2>🏆 Лидерборд</h2>
-  <div id="leaders"></div>
-  <button class="close" onclick="closePanels()">Закрыть</button>
 </div>
 
 <script>
 const SERVER = "https://anime-tap-server-1.onrender.com";
-const USER_ID = localStorage.getItem("uid") || crypto.randomUUID();
-localStorage.setItem("uid", USER_ID);
+
+/* SAFE ID (ANDROID OK) */
+let uid = localStorage.getItem("uid");
+if (!uid) {
+  uid = "u_" + Math.floor(Math.random() * 1e12);
+  localStorage.setItem("uid", uid);
+}
 
 let score = 0;
 
 /* LOAD */
-async function loadState() {
-  const r = await fetch(`${SERVER}/state?id=${USER_ID}`);
-  const d = await r.json();
-  score = d.score;
-  updateUI();
-}
+fetch(SERVER + "/state?id=" + uid)
+  .then(r => r.json())
+  .then(d => {
+    score = d.score || 0;
+    document.getElementById("score").innerText = score;
+  })
+  .catch(() => {});
 
 /* TAP */
-async function tap() {
-  const r = await fetch(`${SERVER}/tap`, {
+document.getElementById("girl").addEventListener("click", () => {
+  fetch(SERVER + "/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: USER_ID })
+    body: JSON.stringify({ id: uid })
+  })
+  .then(r => r.json())
+  .then(d => {
+    score = d.score;
+    document.getElementById("score").innerText = score;
   });
-  const d = await r.json();
-  score = d.score;
-  updateUI();
-
-  const g = document.getElementById("girl");
-  g.style.transform = "scale(0.93)";
-  setTimeout(() => g.style.transform = "scale(1)", 100);
-}
-
-/* LEADERBOARD */
-async function loadLeaders() {
-  const r = await fetch(`${SERVER}/leaderboard`);
-  const d = await r.json();
-  document.getElementById("leaders").innerHTML =
-    d.map((u,i)=>`<p>${i+1}. ${u.score}</p>`).join("");
-}
-
-/* UI */
-function updateUI() {
-  document.getElementById("score").innerText = score;
-  document.getElementById("pScore").innerText = score;
-  document.getElementById("uid").innerText = USER_ID.slice(0,8);
-}
-
-/* PANELS */
-function openPanel(id) {
-  closePanels();
-  document.getElementById(id).style.display = "flex";
-  if (id === "leaderboard") loadLeaders();
-}
-
-function closePanels() {
-  document.querySelectorAll(".panel").forEach(p => p.style.display = "none");
-}
-
-/* INIT */
-document.getElementById("girl").onclick = tap;
-loadState();
+});
 </script>
 
 </body>
