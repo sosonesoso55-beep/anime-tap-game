@@ -9,41 +9,56 @@
 * {
   box-sizing: border-box;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   margin: 0;
-  background: #0b0d18;
   font-family: Arial, sans-serif;
+  height: 100vh;
+  background: url("bg.jpg") center / cover no-repeat fixed;
   color: #fff;
-  text-align: center;
 }
 
+/* затемнение */
+#shade {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+}
+
+/* приложение */
 #app {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
-/* TOP */
+/* верх */
 #top {
-  width: 100%;
   padding: 16px;
-  font-size: 26px;
-  font-weight: bold;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #111;
+  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.08);
+}
+
+#title {
+  font-size: 22px;
+  font-weight: bold;
 }
 
 #score {
-  color: gold;
+  font-size: 26px;
+  color: #ffd86b;
+  text-shadow: 0 0 10px rgba(255,216,107,0.6);
 }
 
-/* TAP */
-#tap-zone {
+/* центр */
+#center {
   flex: 1;
   display: flex;
   align-items: center;
@@ -51,53 +66,68 @@ body {
 }
 
 #girl {
-  width: 280px;
+  width: 300px;
   max-width: 85%;
-  transition: transform 0.08s;
+  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.7));
+  animation: float 4s ease-in-out infinite;
+  transition: transform 0.1s;
 }
 
 #girl:active {
-  transform: scale(0.92);
+  transform: scale(0.9);
 }
 
-/* MENU */
+/* нижнее меню */
 #menu {
-  width: 100%;
+  padding: 14px 0;
   display: flex;
   justify-content: space-around;
-  padding: 14px 0;
-  background: #111;
+  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(255,255,255,0.2);
 }
 
-button {
-  padding: 12px 18px;
-  font-size: 16px;
-  font-weight: bold;
-  border-radius: 12px;
+.menu-btn {
+  background: linear-gradient(135deg, #ff5fc8, #7f7bff);
   border: none;
-  background: linear-gradient(135deg, #ff4ecd, #7f7bff);
-  color: #fff;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+/* анимации */
+@keyframes float {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-14px); }
+  100% { transform: translateY(0); }
 }
 </style>
 </head>
 
 <body>
 
+<div id="shade"></div>
+
 <div id="app">
+
   <div id="top">
-    <div>Anime Tap</div>
+    <div id="title">🌸 Anime Tap</div>
     <div id="score">0</div>
   </div>
 
-  <div id="tap-zone">
+  <div id="center">
     <img src="girl.png" id="girl">
   </div>
 
   <div id="menu">
-    <button onclick="alert('Магазин позже')">🛒 Магазин</button>
-    <button onclick="alert('Профиль позже')">👤 Профиль</button>
-    <button onclick="alert('Топ позже')">🏆 Топ</button>
+    <button class="menu-btn">🛒 Магазин</button>
+    <button class="menu-btn">👤 Профиль</button>
+    <button class="menu-btn">🏆 Топ</button>
   </div>
+
 </div>
 
 <script>
@@ -113,4 +143,4 @@ document.getElementById("girl").onclick = function () {
 </script>
 
 </body>
-    </html>
+</html>
