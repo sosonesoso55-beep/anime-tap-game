@@ -6,69 +6,50 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-*{
-  box-sizing:border-box;
-  font-family:Arial, sans-serif;
-}
+*{box-sizing:border-box;font-family:Arial}
 body{
   margin:0;
-  background:linear-gradient(180deg,#0f1020,#05050b);
+  background:url("bg.jpg") center/cover no-repeat fixed;
   color:#fff;
 }
-#app{
+#overlay{
+  background:rgba(0,0,0,.55);
   min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
 }
-
-/* ШАПКА */
 header{
-  width:100%;
-  padding:20px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  background:#14162e;
+  padding:16px;
   font-size:22px;
+  background:rgba(0,0,0,.5);
 }
-
-/* СЧЁТ */
-#score{
-  font-size:42px;
+#currency{
+  font-size:40px;
   margin:20px 0;
-  font-weight:bold;
 }
-
-/* ДЕВОЧКА */
 #girl{
-  width:320px;
+  width:340px;
   max-width:90%;
-  transition:transform .1s;
-  user-select:none;
+  transition:.1s;
 }
-
-/* КНОПКИ НИЗ */
 #menu{
   position:fixed;
   bottom:0;
   width:100%;
-  background:#14162e;
   display:flex;
   justify-content:space-around;
-  padding:16px 0;
+  padding:14px;
+  background:rgba(0,0,0,.7);
 }
-#menu button{
+button{
+  padding:14px 18px;
   font-size:18px;
-  padding:12px 18px;
   border-radius:14px;
   border:none;
-  background:#7b5cff;
-  color:white;
+  background:#ff7ad9;
+  color:#000;
   font-weight:bold;
 }
-
-/* ОКНА */
 .window{
   position:fixed;
   inset:0;
@@ -76,47 +57,29 @@ header{
   display:none;
   flex-direction:column;
   align-items:center;
-  padding-top:60px;
+  padding-top:50px;
 }
-.window h2{
-  font-size:32px;
-  margin-bottom:20px;
-}
-.window button{
-  margin:10px;
-  padding:16px 22px;
-  font-size:20px;
-  border-radius:14px;
-  border:none;
-  background:#7b5cff;
-  color:white;
-}
-
-/* ЗВЁЗДЫ */
+.window h2{font-size:34px}
 .star{
   position:absolute;
-  font-size:28px;
+  font-size:30px;
   animation:fly 1s forwards;
-  pointer-events:none;
 }
 @keyframes fly{
-  to{
-    transform:translateY(-150px) scale(0);
-    opacity:0;
-  }
+  to{transform:translateY(-150px) scale(0);opacity:0}
 }
 </style>
 </head>
 
 <body>
-<div id="app">
+<div id="overlay">
 
 <header>
-  <div>⭐ <span id="stars">0</span></div>
+  <div>💎 <span id="crystals">0</span></div>
   <button onclick="openWin('profile')">Профиль</button>
 </header>
 
-<div id="score">0</div>
+<div id="currency">💎 0</div>
 
 <img id="girl" src="girl.png">
 
@@ -128,26 +91,31 @@ header{
 
 </div>
 
+<!-- ПРОФИЛЬ -->
+<div id="profile" class="window">
+  <h2>👤 Профиль</h2>
+  <div>ID: <span id="uid"></span></div>
+  <div>Кристаллы: <span id="pcoins"></span></div>
+  <div>Тапы: <span id="ptaps"></span></div>
+  <div>Буст: <span id="pboost">нет</span></div>
+  <div>Осталось: <span id="ptime">—</span></div>
+  <button onclick="closeAll()">Закрыть</button>
+</div>
+
 <!-- МАГАЗИН -->
 <div id="shop" class="window">
-  <h2>Магазин</h2>
-  <button onclick="buy(2,500)">x2 на 10 мин (500)</button>
-  <button onclick="buy(5,3000)">x5 на 10 мин (3000)</button>
+  <h2>🛒 Магазин</h2>
+  <button onclick="buyBoost(2,600)">x2 — 10 мин</button>
+  <button onclick="buyBoost(5,2500)">x5 — 10 мин</button>
+  <button onclick="autoTap()">Автотап 5 мин</button>
+  <button onclick="bonus()">+500 💎</button>
   <button onclick="closeAll()">Закрыть</button>
 </div>
 
 <!-- ЛИДЕРБОРД -->
 <div id="leader" class="window">
-  <h2>Лидерборд</h2>
-  <div id="leaders" style="font-size:22px"></div>
-  <button onclick="closeAll()">Закрыть</button>
-</div>
-
-<!-- ПРОФИЛЬ -->
-<div id="profile" class="window">
-  <h2>Профиль</h2>
-  <div style="font-size:22px">ID: <span id="uid"></span></div>
-  <div style="font-size:22px">Очки: <span id="pscore"></span></div>
+  <h2>🏆 Топ</h2>
+  <div id="leaders"></div>
   <button onclick="closeAll()">Закрыть</button>
 </div>
 
@@ -158,72 +126,76 @@ header{
 <script>
 const SERVER="https://anime-tap-server-1.onrender.com";
 const uid=localStorage.uid||(localStorage.uid=Math.random().toString(36).slice(2));
-let score=0;
-let mult=1;
-let musicOn=false;
+let coins=0,taps=0,mult=1,boostEnd=0;
 
-uidSpan=document.getElementById("uid");
 uidSpan.innerText=uid;
 
 async function tap(e){
-  const r=await fetch(SERVER+"/tap",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({id:uid})
-  });
-  const d=await r.json();
-  score=d.score;
-  render();
+  taps++;
+  coins+=mult;
+  update();
   effect(e);
 }
 
-function render(){
-  document.getElementById("score").innerText=score;
-  document.getElementById("pscore").innerText=score;
+function update(){
+  crystals.innerText=coins;
+  currency.innerText="💎 "+coins;
+  pcoins.innerText=coins;
+  ptaps.innerText=taps;
 }
 
 function effect(e){
   girl.style.transform="scale(.95)";
   setTimeout(()=>girl.style.transform="scale(1)",100);
-
   const s=document.createElement("div");
   s.className="star";
-  s.innerText="⭐";
+  s.innerText="💎";
   s.style.left=e.clientX+"px";
   s.style.top=e.clientY+"px";
   document.body.appendChild(s);
   setTimeout(()=>s.remove(),1000);
 }
 
+function buyBoost(x,price){
+  if(coins<price) return alert("Мало 💎");
+  coins-=price;
+  mult=x;
+  boostEnd=Date.now()+600000;
+  pboost.innerText="x"+x;
+  timer();
+  closeAll();
+}
+
+function autoTap(){
+  let end=Date.now()+300000;
+  let i=setInterval(()=>{
+    if(Date.now()>end){clearInterval(i);return;}
+    coins+=mult;
+    update();
+  },500);
+}
+
+function bonus(){coins+=500;update();}
+
+function timer(){
+  let t=setInterval(()=>{
+    let left=Math.max(0,boostEnd-Date.now());
+    ptime.innerText=Math.ceil(left/1000)+"с";
+    if(left<=0){mult=1;pboost.innerText="нет";clearInterval(t);}
+  },1000);
+}
+
 function openWin(id){
   closeAll();
   document.getElementById(id).style.display="flex";
-  if(id==="leader") loadLeaders();
 }
 function closeAll(){
   document.querySelectorAll(".window").forEach(w=>w.style.display="none");
 }
-
-async function loadLeaders(){
-  const r=await fetch(SERVER+"/leaderboard");
-  const d=await r.json();
-  document.getElementById("leaders").innerHTML=
-    d.map((x,i)=>`${i+1}. ${x.id.slice(0,5)}… — ${x.score}`).join("<br>");
-}
-
-function buy(x,price){
-  if(score<price) return alert("Мало очков");
-  mult=x;
-  setTimeout(()=>mult=1,600000);
-  closeAll();
-}
-
 function toggleMusic(){
-  musicOn=!musicOn;
-  musicOn?music.play():music.pause();
+  music.paused?music.play():music.pause();
 }
 
-girl=document.getElementById("girl");
 girl.onclick=tap;
 </script>
 </body>
