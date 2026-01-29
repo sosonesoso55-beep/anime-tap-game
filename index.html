@@ -2,104 +2,75 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<title>Anime Tap Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anime Tap</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
-body{
-background:radial-gradient(circle,#1a1a3d,#000);
-color:#fff;
-height:100vh;
-overflow:hidden;
+html,body{
+  margin:0;
+  padding:0;
+  background:#0b0b12;
+  color:white;
+  font-family:Arial;
+  overflow:hidden;
 }
-
 #app{
-display:flex;
-flex-direction:column;
-height:100%;
-padding:10px;
-gap:8px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  height:100vh;
 }
-
-.panel{
-background:rgba(255,255,255,.08);
-border-radius:18px;
-padding:10px;
+header{
+  width:100%;
+  padding:10px;
+  display:flex;
+  justify-content:space-between;
+  background:#141428;
 }
-
-#profile{
-display:flex;
-align-items:center;
-gap:12px;
-}
-
-#profile img{
-width:70px;
-height:70px;
-border-radius:50%;
-border:2px solid #ff69b4;
-}
-
-#score{
-font-size:24px;
-font-weight:bold;
-}
-
-#tap-zone{
-flex:1;
-display:flex;
-align-items:center;
-justify-content:center;
-}
-
-#tap{
-width:280px;
-height:280px;
-border-radius:50%;
-border:none;
-background:url("girl.png") center/cover;
-box-shadow:0 0 50px #ff69b4;
-animation:pulse 2s infinite;
-}
-
-@keyframes pulse{
-0%{transform:scale(1)}
-50%{transform:scale(1.06)}
-100%{transform:scale(1)}
-}
-
-#menu{
-display:flex;
-justify-content:space-around;
-}
-
 button{
-background:linear-gradient(135deg,#ff69b4,#ff1493);
-border:none;
-border-radius:14px;
-color:#fff;
-padding:10px 16px;
-font-size:14px;
+  background:#7b5cff;
+  border:none;
+  color:white;
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:bold;
 }
-
-.modal{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.7);
-display:none;
-align-items:center;
-justify-content:center;
-z-index:10;
+#score{
+  font-size:26px;
+  margin:10px;
 }
-
-.modal-content{
-background:#1a1a3d;
-padding:20px;
-border-radius:18px;
-width:90%;
-max-width:340px;
-text-align:center;
+#girl{
+  width:260px;
+  user-select:none;
+  transition:transform .08s;
+}
+#panel{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
+  justify-content:space-around;
+  background:#141428;
+  padding:10px;
+}
+.window{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.window button{margin:6px;}
+.star{
+  position:absolute;
+  color:gold;
+  pointer-events:none;
+  animation:fly 1s forwards;
+}
+@keyframes fly{
+  to{transform:translateY(-120px) scale(0);opacity:0;}
 }
 </style>
 </head>
@@ -107,147 +78,114 @@ text-align:center;
 <body>
 <div id="app">
 
-<div class="panel" id="profile">
-<img src="girl.png">
-<div>
-<div>ID: <span id="uid"></span></div>
-<div id="score">0 ⭐</div>
-<div id="boost">x1</div>
-</div>
-</div>
+<header>
+  <div>⭐ <span id="stars">0</span></div>
+  <button onclick="openWin('profile')">Профиль</button>
+</header>
 
-<div id="tap-zone">
-<button id="tap"></button>
-</div>
+<div id="score">0</div>
+<img id="girl" src="girl.png">
 
-<div class="panel" id="menu">
-<button onclick="openModal('shop')">🛒</button>
-<button onclick="openModal('leaderboard')">🏆</button>
-<button onclick="openModal('settings')">⚙️</button>
+<div id="panel">
+  <button onclick="openWin('shop')">Магазин</button>
+  <button onclick="openWin('leader')">Лидерборд</button>
+  <button onclick="toggleMusic()">🎵</button>
 </div>
 
 </div>
 
-<!-- МАГАЗИН -->
-<div class="modal" id="shop">
-<div class="modal-content">
-<h3>Магазин</h3><br>
-<button onclick="buyBoost(2,500)">x2 — 10 мин (500⭐)</button><br><br>
-<button onclick="buyBoost(5,3000)">x5 — 10 мин (3000⭐)</button><br><br>
-<button onclick="closeModals()">Закрыть</button>
-</div>
+<!-- ОКНА -->
+<div id="shop" class="window">
+  <h2>Магазин</h2>
+  <button onclick="buy(2,500)">x2 (10 мин)</button>
+  <button onclick="buy(5,3000)">x5 (10 мин)</button>
+  <button onclick="closeAll()">Закрыть</button>
 </div>
 
-<!-- ЛИДЕРБОРД -->
-<div class="modal" id="leaderboard">
-<div class="modal-content">
-<h3>Лидерборд</h3>
-<div id="lb"></div><br>
-<button onclick="closeModals()">Закрыть</button>
-</div>
+<div id="leader" class="window">
+  <h2>Топ</h2>
+  <div id="leaders"></div>
+  <button onclick="closeAll()">Закрыть</button>
 </div>
 
-<!-- НАСТРОЙКИ -->
-<div class="modal" id="settings">
-<div class="modal-content">
-<h3>Настройки</h3><br>
-<button onclick="toggleMusic()">Музыка</button><br><br>
-<button onclick="resetGame()">Сброс</button><br><br>
-<button onclick="closeModals()">Закрыть</button>
-</div>
+<div id="profile" class="window">
+  <h2>Профиль</h2>
+  <div>ID: <span id="uid"></span></div>
+  <div>Очки: <span id="pscore"></span></div>
+  <button onclick="closeAll()">Закрыть</button>
 </div>
 
-<audio id="tapSound" src="tap.mp3"></audio>
-<audio id="music" src="music.mp3" loop></audio>
+<audio id="music" loop>
+  <source src="music.mp3">
+</audio>
 
 <script>
-// ===== СОХРАНЕНИЕ =====
-const save = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
-const load = (k,d)=>JSON.parse(localStorage.getItem(k)) ?? d;
-
-// ===== ДАННЫЕ =====
-const uid = load("uid",Math.random().toString(36).slice(2));
-save("uid",uid);
-
-let score = load("score",0);
-let power = load("power",1);
-let boostEnd = load("boostEnd",0);
-let musicOn = load("musicOn",true);
+const SERVER = "https://anime-tap-server-1.onrender.com";
+const uid = localStorage.uid || (localStorage.uid = Math.random().toString(36).slice(2));
+let score = 0;
+let mult = 1;
+let musicOn = false;
 
 document.getElementById("uid").innerText = uid;
 
-const tapSound = document.getElementById("tapSound");
-const music = document.getElementById("music");
-music.volume = 0.3;
-
-// ===== ЛОГИКА =====
-function tap(){
-if(musicOn && music.paused) music.play();
-tapSound.currentTime=0;
-tapSound.play();
-
-checkBoost();
-score += power;
-save("score",score);
-render();
-}
-
-function buyBoost(mult,price){
-if(score<price) return alert("Мало очков");
-score-=price;
-power=mult;
-boostEnd=Date.now()+600000;
-save("score",score);
-save("power",power);
-save("boostEnd",boostEnd);
-render();
-closeModals();
-}
-
-function checkBoost(){
-if(power>1 && Date.now()>boostEnd){
-power=1;
-save("power",1);
-}
-}
-
-function toggleMusic(){
-musicOn=!musicOn;
-save("musicOn",musicOn);
-musicOn?music.play():music.pause();
+async function tap(e){
+  const r = await fetch(SERVER+"/tap",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id:uid})
+  });
+  const d = await r.json();
+  score = d.score;
+  render();
+  fx(e);
 }
 
 function render(){
-document.getElementById("score").innerText = score+" ⭐";
-document.getElementById("boost").innerText = "x"+power;
-renderLB();
+  scoreEl.innerText = score;
+  pscore.innerText = score;
 }
 
-function renderLB(){
-let lb = load("lb",{});
-lb[uid]=score;
-save("lb",lb);
-
-document.getElementById("lb").innerHTML =
-Object.entries(lb)
-.sort((a,b)=>b[1]-a[1])
-.slice(0,5)
-.map((u,i)=>`${i+1}. ${u[0]} — ${u[1]}⭐`)
-.join("<br>");
+function fx(e){
+  girl.style.transform="scale(.94)";
+  setTimeout(()=>girl.style.transform="scale(1)",80);
+  const s=document.createElement("div");
+  s.className="star";
+  s.innerText="⭐";
+  s.style.left=e.clientX+"px";
+  s.style.top=e.clientY+"px";
+  document.body.appendChild(s);
+  setTimeout(()=>s.remove(),1000);
 }
 
-function resetGame(){
-if(!confirm("Сбросить всё?"))return;
-localStorage.clear();
-location.reload();
+async function loadLeaders(){
+  const r=await fetch(SERVER+"/leaderboard");
+  const d=await r.json();
+  leaders.innerHTML=d.map(x=>`${x.id.slice(0,5)}... — ${x.score}`).join("<br>");
 }
 
-// ===== UI =====
-function openModal(id){document.getElementById(id).style.display="flex";}
-function closeModals(){document.querySelectorAll(".modal").forEach(m=>m.style.display="none");}
+function buy(x,price){
+  if(score<price) return alert("Мало очков");
+  mult=x;
+  setTimeout(()=>mult=1,600000);
+  closeAll();
+}
 
-document.getElementById("tap").onclick=tap;
-render();
+function openWin(id){
+  closeAll();
+  document.getElementById(id).style.display="flex";
+  if(id==="leader") loadLeaders();
+}
+function closeAll(){
+  document.querySelectorAll(".window").forEach(w=>w.style.display="none");
+}
+
+function toggleMusic(){
+  musicOn=!musicOn;
+  musicOn?music.play():music.pause();
+}
+
+girl.onclick=tap;
+scoreEl=document.getElementById("score");
 </script>
 </body>
-                    </html>
+</html>
