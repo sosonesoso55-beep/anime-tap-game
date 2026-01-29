@@ -2,68 +2,131 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anime Tap TG</title>
-
-<!-- TELEGRAM API -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Anime Tap Game</title>
 
 <style>
-* {
-  box-sizing: border-box;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
+*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
+body{
+  background:url("https://images.unsplash.com/photo-1601579112949-7d5e2c2c5c0e") center/cover no-repeat;
+  height:100vh;color:#fff;overflow:hidden
 }
-
-body {
-  margin: 0;
-  background: #0b0d18;
-  font-family: Arial, sans-serif;
-  color: #fff;
-  text-align: center;
+#app{display:flex;flex-direction:column;height:100%}
+header{
+  text-align:center;padding:10px;
+  background:rgba(0,0,0,.6)
 }
-
-#score {
-  font-size: 40px;
-  margin: 20px 0;
-  color: gold;
+#coins{font-size:22px;font-weight:bold}
+main{flex:1;display:flex;justify-content:center;align-items:center}
+#girl{
+  width:220px;
+  transition:transform .1s;
 }
-
-#girl {
-  width: 260px;
-  max-width: 80%;
-  transition: transform 0.08s;
+#girl:active{transform:scale(.92)}
+nav{
+  display:flex;justify-content:space-around;
+  background:rgba(0,0,0,.7);padding:10px
 }
-
-#girl:active {
-  transform: scale(0.92);
+button{
+  background:#ff4fd8;border:none;
+  padding:10px;border-radius:12px;
+  color:#fff;font-weight:bold
+}
+.panel{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.9);
+  display:none;flex-direction:column;
+  padding:20px;gap:15px
+}
+.panel h2{text-align:center}
+.item{
+  background:#222;padding:12px;border-radius:10px;
+  display:flex;justify-content:space-between
 }
 </style>
 </head>
 
 <body>
+<div id="app">
+  <header>
+    <div id="coins">0 ⭐</div>
+  </header>
 
-<div id="score">0</div>
-<img id="girl" src="girl.png">
+  <main>
+    <img id="girl" src="https://i.imgur.com/6QJ6b0F.png">
+  </main>
+
+  <nav>
+    <button onclick="openPanel('shop')">🛒</button>
+    <button onclick="openPanel('profile')">👤</button>
+    <button onclick="openPanel('settings')">⚙️</button>
+  </nav>
+</div>
+
+<!-- SHOP -->
+<div class="panel" id="shop">
+  <h2>Магазин</h2>
+  <div class="item">
+    <span>x2 (10 мин)</span>
+    <button onclick="buyBoost(2,500)">500⭐</button>
+  </div>
+  <div class="item">
+    <span>x5 (10 мин)</span>
+    <button onclick="buyBoost(5,3000)">3000⭐</button>
+  </div>
+  <button onclick="closePanels()">Назад</button>
+</div>
+
+<!-- PROFILE -->
+<div class="panel" id="profile">
+  <h2>Профиль</h2>
+  <p>Тапов: <span id="taps">0</span></p>
+  <p>Буст: <span id="boost">x1</span></p>
+  <button onclick="closePanels()">Назад</button>
+</div>
+
+<!-- SETTINGS -->
+<div class="panel" id="settings">
+  <h2>Настройки</h2>
+  <button onclick="toggleMusic()">🎵 Музыка</button>
+  <button onclick="closePanels()">Назад</button>
+</div>
+
+<audio id="tapSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+<audio id="music" loop src="https://assets.mixkit.co/music/preview/mixkit-japanese-fantasy-138.mp3"></audio>
 
 <script>
-/* TELEGRAM INIT */
-const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
+let coins=0,taps=0,boost=1,musicOn=false
+const girl=document.getElementById("girl")
 
-/* SAFE STORAGE */
-let score = parseInt(localStorage.getItem("score")) || 0;
-const scoreEl = document.getElementById("score");
-scoreEl.innerText = score;
+girl.onclick=()=>{
+  coins+=boost
+  taps++
+  document.getElementById("coins").innerText=coins+" ⭐"
+  document.getElementById("taps").innerText=taps
+  document.getElementById("tapSound").play()
+}
 
-/* TAP */
-document.getElementById("girl").onclick = () => {
-  score++;
-  scoreEl.innerText = score;
-  localStorage.setItem("score", score);
-};
+function openPanel(id){
+  document.querySelectorAll(".panel").forEach(p=>p.style.display="none")
+  document.getElementById(id).style.display="flex"
+}
+function closePanels(){
+  document.querySelectorAll(".panel").forEach(p=>p.style.display="none")
+}
+
+function buyBoost(x,price){
+  if(coins<price) return alert("Мало звёзд")
+  coins-=price
+  boost=x
+  document.getElementById("boost").innerText="x"+x
+  setTimeout(()=>boost=1,600000)
+}
+
+function toggleMusic(){
+  musicOn=!musicOn
+  musicOn?music.play():music.pause()
+}
 </script>
-
 </body>
-</html>
+      </html>
