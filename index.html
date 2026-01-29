@@ -6,71 +6,104 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-html,body{
+*{
+  box-sizing:border-box;
+  font-family:Arial, sans-serif;
+}
+body{
   margin:0;
-  padding:0;
-  background:#0b0b12;
-  color:white;
-  font-family:Arial;
-  overflow:hidden;
+  background:linear-gradient(180deg,#0f1020,#05050b);
+  color:#fff;
 }
 #app{
+  min-height:100vh;
   display:flex;
   flex-direction:column;
   align-items:center;
-  height:100vh;
 }
+
+/* ШАПКА */
 header{
   width:100%;
-  padding:10px;
+  padding:20px;
   display:flex;
   justify-content:space-between;
-  background:#141428;
+  align-items:center;
+  background:#14162e;
+  font-size:22px;
 }
-button{
-  background:#7b5cff;
-  border:none;
-  color:white;
-  padding:10px 14px;
-  border-radius:10px;
+
+/* СЧЁТ */
+#score{
+  font-size:42px;
+  margin:20px 0;
   font-weight:bold;
 }
-#score{
-  font-size:26px;
-  margin:10px;
-}
+
+/* ДЕВОЧКА */
 #girl{
-  width:260px;
+  width:320px;
+  max-width:90%;
+  transition:transform .1s;
   user-select:none;
-  transition:transform .08s;
 }
-#panel{
+
+/* КНОПКИ НИЗ */
+#menu{
   position:fixed;
   bottom:0;
   width:100%;
+  background:#14162e;
   display:flex;
   justify-content:space-around;
-  background:#141428;
-  padding:10px;
+  padding:16px 0;
 }
+#menu button{
+  font-size:18px;
+  padding:12px 18px;
+  border-radius:14px;
+  border:none;
+  background:#7b5cff;
+  color:white;
+  font-weight:bold;
+}
+
+/* ОКНА */
 .window{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.85);
+  background:rgba(0,0,0,.92);
   display:none;
   flex-direction:column;
   align-items:center;
-  justify-content:center;
+  padding-top:60px;
 }
-.window button{margin:6px;}
+.window h2{
+  font-size:32px;
+  margin-bottom:20px;
+}
+.window button{
+  margin:10px;
+  padding:16px 22px;
+  font-size:20px;
+  border-radius:14px;
+  border:none;
+  background:#7b5cff;
+  color:white;
+}
+
+/* ЗВЁЗДЫ */
 .star{
   position:absolute;
-  color:gold;
-  pointer-events:none;
+  font-size:28px;
   animation:fly 1s forwards;
+  pointer-events:none;
 }
 @keyframes fly{
-  to{transform:translateY(-120px) scale(0);opacity:0;}
+  to{
+    transform:translateY(-150px) scale(0);
+    opacity:0;
+  }
 }
 </style>
 </head>
@@ -84,34 +117,37 @@ button{
 </header>
 
 <div id="score">0</div>
+
 <img id="girl" src="girl.png">
 
-<div id="panel">
+<div id="menu">
   <button onclick="openWin('shop')">Магазин</button>
-  <button onclick="openWin('leader')">Лидерборд</button>
+  <button onclick="openWin('leader')">Топ</button>
   <button onclick="toggleMusic()">🎵</button>
 </div>
 
 </div>
 
-<!-- ОКНА -->
+<!-- МАГАЗИН -->
 <div id="shop" class="window">
   <h2>Магазин</h2>
-  <button onclick="buy(2,500)">x2 (10 мин)</button>
-  <button onclick="buy(5,3000)">x5 (10 мин)</button>
+  <button onclick="buy(2,500)">x2 на 10 мин (500)</button>
+  <button onclick="buy(5,3000)">x5 на 10 мин (3000)</button>
   <button onclick="closeAll()">Закрыть</button>
 </div>
 
+<!-- ЛИДЕРБОРД -->
 <div id="leader" class="window">
-  <h2>Топ</h2>
-  <div id="leaders"></div>
+  <h2>Лидерборд</h2>
+  <div id="leaders" style="font-size:22px"></div>
   <button onclick="closeAll()">Закрыть</button>
 </div>
 
+<!-- ПРОФИЛЬ -->
 <div id="profile" class="window">
   <h2>Профиль</h2>
-  <div>ID: <span id="uid"></span></div>
-  <div>Очки: <span id="pscore"></span></div>
+  <div style="font-size:22px">ID: <span id="uid"></span></div>
+  <div style="font-size:22px">Очки: <span id="pscore"></span></div>
   <button onclick="closeAll()">Закрыть</button>
 </div>
 
@@ -120,34 +156,36 @@ button{
 </audio>
 
 <script>
-const SERVER = "https://anime-tap-server-1.onrender.com";
-const uid = localStorage.uid || (localStorage.uid = Math.random().toString(36).slice(2));
-let score = 0;
-let mult = 1;
-let musicOn = false;
+const SERVER="https://anime-tap-server-1.onrender.com";
+const uid=localStorage.uid||(localStorage.uid=Math.random().toString(36).slice(2));
+let score=0;
+let mult=1;
+let musicOn=false;
 
-document.getElementById("uid").innerText = uid;
+uidSpan=document.getElementById("uid");
+uidSpan.innerText=uid;
 
 async function tap(e){
-  const r = await fetch(SERVER+"/tap",{
+  const r=await fetch(SERVER+"/tap",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({id:uid})
   });
-  const d = await r.json();
-  score = d.score;
+  const d=await r.json();
+  score=d.score;
   render();
-  fx(e);
+  effect(e);
 }
 
 function render(){
-  scoreEl.innerText = score;
-  pscore.innerText = score;
+  document.getElementById("score").innerText=score;
+  document.getElementById("pscore").innerText=score;
 }
 
-function fx(e){
-  girl.style.transform="scale(.94)";
-  setTimeout(()=>girl.style.transform="scale(1)",80);
+function effect(e){
+  girl.style.transform="scale(.95)";
+  setTimeout(()=>girl.style.transform="scale(1)",100);
+
   const s=document.createElement("div");
   s.className="star";
   s.innerText="⭐";
@@ -155,19 +193,6 @@ function fx(e){
   s.style.top=e.clientY+"px";
   document.body.appendChild(s);
   setTimeout(()=>s.remove(),1000);
-}
-
-async function loadLeaders(){
-  const r=await fetch(SERVER+"/leaderboard");
-  const d=await r.json();
-  leaders.innerHTML=d.map(x=>`${x.id.slice(0,5)}... — ${x.score}`).join("<br>");
-}
-
-function buy(x,price){
-  if(score<price) return alert("Мало очков");
-  mult=x;
-  setTimeout(()=>mult=1,600000);
-  closeAll();
 }
 
 function openWin(id){
@@ -179,13 +204,27 @@ function closeAll(){
   document.querySelectorAll(".window").forEach(w=>w.style.display="none");
 }
 
+async function loadLeaders(){
+  const r=await fetch(SERVER+"/leaderboard");
+  const d=await r.json();
+  document.getElementById("leaders").innerHTML=
+    d.map((x,i)=>`${i+1}. ${x.id.slice(0,5)}… — ${x.score}`).join("<br>");
+}
+
+function buy(x,price){
+  if(score<price) return alert("Мало очков");
+  mult=x;
+  setTimeout(()=>mult=1,600000);
+  closeAll();
+}
+
 function toggleMusic(){
   musicOn=!musicOn;
   musicOn?music.play():music.pause();
 }
 
+girl=document.getElementById("girl");
 girl.onclick=tap;
-scoreEl=document.getElementById("score");
 </script>
 </body>
 </html>
