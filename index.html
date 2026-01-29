@@ -2,201 +2,124 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Anime Tap Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anime Tap</title>
 
 <style>
-*{box-sizing:border-box;font-family:Arial}
-body{
-  margin:0;
-  background:url("bg.jpg") center/cover no-repeat fixed;
-  color:#fff;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
 }
-#overlay{
-  background:rgba(0,0,0,.55);
-  min-height:100vh;
+
+body {
+  height: 100vh;
+  background: url("bg.jpg") center/cover no-repeat;
+  overflow: hidden;
+  color: white;
 }
-header{
-  display:flex;
-  justify-content:space-between;
-  padding:16px;
-  font-size:22px;
-  background:rgba(0,0,0,.5);
+
+/* затемнение */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
 }
-#currency{
-  font-size:40px;
-  margin:20px 0;
+
+/* верх */
+.top {
+  position: relative;
+  z-index: 2;
+  padding: 16px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 0 0 10px #000;
 }
-#girl{
-  width:340px;
-  max-width:90%;
-  transition:.1s;
+
+/* очки */
+.score {
+  margin-top: 6px;
+  font-size: 32px;
+  color: #ffd86b;
 }
-#menu{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  display:flex;
-  justify-content:space-around;
-  padding:14px;
-  background:rgba(0,0,0,.7);
+
+/* центр */
+.center {
+  position: relative;
+  z-index: 2;
+  height: calc(100vh - 180px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-button{
-  padding:14px 18px;
-  font-size:18px;
-  border-radius:14px;
-  border:none;
-  background:#ff7ad9;
-  color:#000;
-  font-weight:bold;
+
+.tap {
+  width: 260px;
+  max-width: 80vw;
+  animation: float 4s ease-in-out infinite;
+  transition: transform 0.1s ease;
 }
-.window{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.92);
-  display:none;
-  flex-direction:column;
-  align-items:center;
-  padding-top:50px;
+
+.tap:active {
+  transform: scale(0.92);
 }
-.window h2{font-size:34px}
-.star{
-  position:absolute;
-  font-size:30px;
-  animation:fly 1s forwards;
+
+/* нижнее меню */
+.nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 3;
+  display: flex;
+  justify-content: space-around;
+  padding: 14px 0;
+  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(255,255,255,0.2);
 }
-@keyframes fly{
-  to{transform:translateY(-150px) scale(0);opacity:0}
+
+.nav button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 14px;
+  text-align: center;
+}
+
+.nav span {
+  display: block;
+  font-size: 22px;
+}
+
+/* анимации */
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0); }
 }
 </style>
 </head>
 
 <body>
-<div id="overlay">
+<div class="overlay"></div>
 
-<header>
-  <div>💎 <span id="crystals">0</span></div>
-  <button onclick="openWin('profile')">Профиль</button>
-</header>
-
-<div id="currency">💎 0</div>
-
-<img id="girl" src="girl.png">
-
-<div id="menu">
-  <button onclick="openWin('shop')">Магазин</button>
-  <button onclick="openWin('leader')">Топ</button>
-  <button onclick="toggleMusic()">🎵</button>
+<div class="top">
+  🌸 Anime Tap
+  <div class="score">⭐ 0</div>
 </div>
 
+<div class="center">
+  <img src="girl.png" class="tap">
 </div>
 
-<!-- ПРОФИЛЬ -->
-<div id="profile" class="window">
-  <h2>👤 Профиль</h2>
-  <div>ID: <span id="uid"></span></div>
-  <div>Кристаллы: <span id="pcoins"></span></div>
-  <div>Тапы: <span id="ptaps"></span></div>
-  <div>Буст: <span id="pboost">нет</span></div>
-  <div>Осталось: <span id="ptime">—</span></div>
-  <button onclick="closeAll()">Закрыть</button>
+<div class="nav">
+  <button><span>👆</span>Тап</button>
+  <button><span>🛒</span>Магазин</button>
+  <button><span>👤</span>Профиль</button>
+  <button><span>🏆</span>Топ</button>
 </div>
 
-<!-- МАГАЗИН -->
-<div id="shop" class="window">
-  <h2>🛒 Магазин</h2>
-  <button onclick="buyBoost(2,600)">x2 — 10 мин</button>
-  <button onclick="buyBoost(5,2500)">x5 — 10 мин</button>
-  <button onclick="autoTap()">Автотап 5 мин</button>
-  <button onclick="bonus()">+500 💎</button>
-  <button onclick="closeAll()">Закрыть</button>
-</div>
-
-<!-- ЛИДЕРБОРД -->
-<div id="leader" class="window">
-  <h2>🏆 Топ</h2>
-  <div id="leaders"></div>
-  <button onclick="closeAll()">Закрыть</button>
-</div>
-
-<audio id="music" loop>
-  <source src="music.mp3">
-</audio>
-
-<script>
-const SERVER="https://anime-tap-server-1.onrender.com";
-const uid=localStorage.uid||(localStorage.uid=Math.random().toString(36).slice(2));
-let coins=0,taps=0,mult=1,boostEnd=0;
-
-uidSpan.innerText=uid;
-
-async function tap(e){
-  taps++;
-  coins+=mult;
-  update();
-  effect(e);
-}
-
-function update(){
-  crystals.innerText=coins;
-  currency.innerText="💎 "+coins;
-  pcoins.innerText=coins;
-  ptaps.innerText=taps;
-}
-
-function effect(e){
-  girl.style.transform="scale(.95)";
-  setTimeout(()=>girl.style.transform="scale(1)",100);
-  const s=document.createElement("div");
-  s.className="star";
-  s.innerText="💎";
-  s.style.left=e.clientX+"px";
-  s.style.top=e.clientY+"px";
-  document.body.appendChild(s);
-  setTimeout(()=>s.remove(),1000);
-}
-
-function buyBoost(x,price){
-  if(coins<price) return alert("Мало 💎");
-  coins-=price;
-  mult=x;
-  boostEnd=Date.now()+600000;
-  pboost.innerText="x"+x;
-  timer();
-  closeAll();
-}
-
-function autoTap(){
-  let end=Date.now()+300000;
-  let i=setInterval(()=>{
-    if(Date.now()>end){clearInterval(i);return;}
-    coins+=mult;
-    update();
-  },500);
-}
-
-function bonus(){coins+=500;update();}
-
-function timer(){
-  let t=setInterval(()=>{
-    let left=Math.max(0,boostEnd-Date.now());
-    ptime.innerText=Math.ceil(left/1000)+"с";
-    if(left<=0){mult=1;pboost.innerText="нет";clearInterval(t);}
-  },1000);
-}
-
-function openWin(id){
-  closeAll();
-  document.getElementById(id).style.display="flex";
-}
-function closeAll(){
-  document.querySelectorAll(".window").forEach(w=>w.style.display="none");
-}
-function toggleMusic(){
-  music.paused?music.play():music.pause();
-}
-
-girl.onclick=tap;
-</script>
 </body>
 </html>
