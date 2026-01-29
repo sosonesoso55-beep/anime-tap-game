@@ -3,44 +3,114 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tap Test</title>
+<title>Anime Tap</title>
 
 <style>
+* {
+  box-sizing: border-box;
+  user-select: none;
+}
+
 body {
   margin: 0;
-  background: #000;
-  color: #fff;
+  background: #0b0d18;
   font-family: Arial, sans-serif;
+  color: #fff;
   text-align: center;
 }
 
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* TOP */
+#top {
+  width: 100%;
+  padding: 16px;
+  font-size: 26px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #111;
+}
+
 #score {
-  font-size: 40px;
-  margin-top: 20px;
+  color: gold;
+}
+
+/* TAP */
+#tap-zone {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #girl {
-  margin-top: 40px;
-  width: 250px;
-  max-width: 80%;
+  width: 280px;
+  max-width: 85%;
+  transition: transform 0.08s;
+}
+
+#girl:active {
+  transform: scale(0.92);
+}
+
+/* MENU */
+#menu {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  padding: 14px 0;
+  background: #111;
+}
+
+button {
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #ff4ecd, #7f7bff);
+  color: #fff;
 }
 </style>
 </head>
 
 <body>
 
-<div id="score">0</div>
+<div id="app">
+  <div id="top">
+    <div>Anime Tap</div>
+    <div id="score">0</div>
+  </div>
 
-<img id="girl" src="girl.png">
+  <div id="tap-zone">
+    <img src="girl.png" id="girl">
+  </div>
+
+  <div id="menu">
+    <button onclick="alert('Магазин позже')">🛒 Магазин</button>
+    <button onclick="alert('Профиль позже')">👤 Профиль</button>
+    <button onclick="alert('Топ позже')">🏆 Топ</button>
+  </div>
+</div>
 
 <script>
-let score = 0;
+let score = parseInt(localStorage.getItem("score")) || 0;
+const scoreEl = document.getElementById("score");
+scoreEl.innerText = score;
 
 document.getElementById("girl").onclick = function () {
   score++;
-  document.getElementById("score").innerText = score;
+  scoreEl.innerText = score;
+  localStorage.setItem("score", score);
 };
 </script>
 
 </body>
-</html>
+    </html>
